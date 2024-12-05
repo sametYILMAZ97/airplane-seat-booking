@@ -7,17 +7,19 @@ import { PassengerForm } from "@/components/PassengerForm";
 import { COLUMNS, ROWS, PRICE_PER_SEAT, formatPrice } from "@/utils/seats";
 import { AirplaneSvg } from "@/components/AirplaneSvg";
 import { toast } from "sonner";
-import { Timer } from '@/components/Timer'; // Add this import
+import { Timer } from "@/components/Timer";
 
 export default function Home() {
-  const [passengers, setPassengers] = useState<{[key: number]: {name: string; idNumber: string}}>({});
+  const [passengers, setPassengers] = useState<{
+    [key: number]: { name: string; idNumber: string };
+  }>({});
   const {
     seats,
     selectedSeats,
     occupiedUsers,
     selectSeat,
     handleReset,
-    startInactivityTimer
+    startInactivityTimer,
   } = useStore();
 
   const handleLocalReset = useCallback(() => {
@@ -35,54 +37,61 @@ export default function Home() {
     if (selectedSeats.length === 0) {
       toast.error("Lütfen en az bir koltuk seçin", {
         style: {
-          backgroundColor: '#ef4444',
-          color: 'white',
-        }
+          backgroundColor: "#ef4444",
+          color: "white",
+        },
       });
       return;
     }
 
-    const filledPassengers = Object.values(passengers).filter(p => p.name && p.idNumber);
+    const filledPassengers = Object.values(passengers).filter(
+      (p) => p.name && p.idNumber
+    );
     if (filledPassengers.length !== selectedSeats.length) {
       toast.error("Lütfen tüm yolcu bilgilerini doldurun", {
         style: {
-          backgroundColor: '#ef4444',
-          color: 'white',
-        }
+          backgroundColor: "#ef4444",
+          color: "white",
+        },
       });
       return;
     }
 
     toast.success("Rezervasyon başarıyla tamamlandı!", {
       style: {
-        backgroundColor: '#22c55e',
-        color: 'white',
-      }
+        backgroundColor: "#22c55e",
+        color: "white",
+      },
     });
     handleReset(() => {
       handleLocalReset();
     });
   };
 
-  const handlePassengerSubmit = (index: number, data: {name: string; idNumber: string}) => {
-    setPassengers(prev => ({...prev, [index]: data}));
+  const handlePassengerSubmit = (
+    index: number,
+    data: { name: string; idNumber: string }
+  ) => {
+    setPassengers((prev) => ({ ...prev, [index]: data }));
   };
 
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-[88rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="relative bg-white p-8 rounded-lg shadow">
-          <div className="relative w-full max-w-[1200px] h-[800px] mx-auto"> {/* Changed max-w-[800px] to max-w-[1200px] and h-[600px] to h-[800px] */}
-            <div className="absolute inset-0 scale-y-100 origin-top translate-y-52"> {/* Changed translate-y-64 to translate-y-80 */}
+          <div className="relative w-full max-w-[1200px] h-[800px] mx-auto">
+            <div className="absolute inset-0 scale-y-100 origin-top translate-y-52">
               <AirplaneSvg />
             </div>
-            <div className="absolute inset-0 flex items-start justify-center pl-24 pt-[80px]"> {/* Changed from pt-[100px] to pt-[80px] */}
-              <div className="w-[220px] flex gap-4"> {/* Fixed width */}
-                <div className="grid grid-cols-2 gap-x-0.5 gap-y-1"> {/* Changed gap-y-0 to gap-y-1 */}
-                  {ROWS.map(row =>
-                    COLUMNS.slice(0, 2).map(col => {
-                      const seat = seats.find(s => s.id === `${row}${col}`);
-                      const occupiedUser = seat?.isOccupied ? occupiedUsers[seat.id] : undefined; // Fetch from map
+            <div className="absolute inset-0 flex items-start justify-center pl-24 pt-[80px]">
+              <div className="w-[220px] flex gap-4">
+                <div className="grid grid-cols-2 gap-x-0.5 gap-y-1">
+                  {ROWS.map((row) =>
+                    COLUMNS.slice(0, 2).map((col) => {
+                      const seat = seats.find((s) => s.id === `${row}${col}`);
+                      const occupiedUser = seat?.isOccupied
+                        ? occupiedUsers[seat.id]
+                        : undefined; // Fetch from map
 
                       return (
                         <Seat
@@ -91,21 +100,20 @@ export default function Home() {
                           isSelected={selectedSeats.includes(`${row}${col}`)}
                           occupiedUser={occupiedUser}
                           onSelect={selectSeat}
-                          className={
-                            seat?.isExitRow ? "mt-6" :
-                            ""
-                          }
+                          className={seat?.isExitRow ? "mt-6" : ""}
                         />
                       );
                     })
                   )}
                 </div>
-
-                <div className="grid grid-cols-2 gap-x-0.5 gap-y-1"> {/* Changed gap-y-0 to gap-y-1 */}
-                  {ROWS.map(row =>
-                    COLUMNS.slice(2).map(col => {
-                      const seat = seats.find(s => s.id === `${row}${col}`);
-                      const occupiedUser = seat?.isOccupied ? occupiedUsers[seat.id] : undefined; // Fetch from map
+                <div className="grid grid-cols-2 gap-x-0.5 gap-y-1">
+                  {" "}
+                  {ROWS.map((row) =>
+                    COLUMNS.slice(2).map((col) => {
+                      const seat = seats.find((s) => s.id === `${row}${col}`);
+                      const occupiedUser = seat?.isOccupied
+                        ? occupiedUsers[seat.id]
+                        : undefined; // Fetch from map
 
                       return (
                         <Seat
@@ -114,10 +122,7 @@ export default function Home() {
                           isSelected={selectedSeats.includes(`${row}${col}`)}
                           occupiedUser={occupiedUser}
                           onSelect={selectSeat}
-                          className={
-                            seat?.isExitRow ? "mt-6" :
-                            ""
-                          }
+                          className={seat?.isExitRow ? "mt-6" : ""}
                         />
                       );
                     })
@@ -155,7 +160,7 @@ export default function Home() {
             />
           ))}
 
-          <Timer /> {/* Moved Timer below the passenger forms */}
+          <Timer />
 
           <div className="mt-4 p-4 bg-gray-100 rounded">
             <div className="flex justify-between items-center mb-4">

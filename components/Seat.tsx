@@ -7,7 +7,7 @@ interface SeatProps {
   isSelected: boolean;
   occupiedUser?: User;
   onSelect: (seatId: string) => void;
-  className?: string; // Add this line
+  className?: string;
 }
 
 export const Seat: React.FC<SeatProps> = ({
@@ -28,7 +28,7 @@ export const Seat: React.FC<SeatProps> = ({
             : isSelected
             ? "bg-yellow-400"
             : "bg-white"
-        } hover:opacity-80 transition-colors rounded p-0.5 ${className}`} // Include `className`
+        } hover:opacity-80 transition-colors rounded p-0.5 ${className}`}
         onClick={() => {
           if (seat.isOccupied) {
             const user = occupiedUser;

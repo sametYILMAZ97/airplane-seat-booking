@@ -6,16 +6,16 @@ import { toast } from "sonner";
 interface SeatStore {
   seats: Seat[];
   selectedSeats: string[];
-  occupiedUsers: { [key: string]: User }; // Change to a map
+  occupiedUsers: { [key: string]: User };
   inactivityTimer: NodeJS.Timeout | null;
   showInactivityWarning: boolean;
-  remainingTime: number; // Add this property
+  remainingTime: number;
   setSeats: (seats: Seat[]) => void;
   setSelectedSeats: (seats: string[]) => void;
   setOccupiedUsers: (users: { [key: string]: User }) => void;
   setInactivityTimer: (timer: NodeJS.Timeout | null) => void;
   setShowInactivityWarning: (show: boolean) => void;
-  setRemainingTime: (time: number) => void; // Add setter
+  setRemainingTime: (time: number) => void;
   selectSeat: (seatId: string) => void;
   handleReset: (onReset?: () => void) => void;
   startInactivityTimer: () => void;
@@ -35,7 +35,7 @@ export const useStore = create<SeatStore>((set, get) => ({
     "2D": { name: "User 8", idNumber: "ID8" },
     "3A": { name: "User 9", idNumber: "ID9" },
     "3B": { name: "User 10", idNumber: "ID10" },
-  }, // Initialize with correct seatId as keys
+  },
   inactivityTimer: null,
   showInactivityWarning: false,
   remainingTime: 30, // Initialize countdown (in seconds)
@@ -44,15 +44,14 @@ export const useStore = create<SeatStore>((set, get) => ({
   setOccupiedUsers: (occupiedUsers) => set({ occupiedUsers }),
   setInactivityTimer: (timer) => set({ inactivityTimer: timer }),
   setShowInactivityWarning: (show) => set({ showInactivityWarning: show }),
-  setRemainingTime: (time) => set({ remainingTime: time }), // Add setter
+  setRemainingTime: (time) => set({ remainingTime: time }),
   selectSeat: (seatId) => {
-    const { seats, selectedSeats, occupiedUsers, startInactivityTimer } = get();
+    const { seats, selectedSeats, startInactivityTimer } = get();
     const seat = seats.find((s) => s.id === seatId);
 
     if (!seat) return;
 
     if (seat.isOccupied) {
-      const user = occupiedUsers[seatId]; // Fetch user by seatId
       toast.error("Bu koltuk zaten dolu!", {
         style: {
           backgroundColor: "#ef4444",

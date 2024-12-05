@@ -12,7 +12,7 @@ export interface Seat {
   row: number;
   column: string;
   isOccupied: boolean;
-  isExitRow?: boolean; // Add this property
+  isExitRow?: boolean;
   occupiedBy?: {
     name: string;
     email: string;
@@ -21,7 +21,7 @@ export interface Seat {
 
 export interface User {
   id: number;
+  idNumber: string;
   name: string;
   email: string;
 }
-

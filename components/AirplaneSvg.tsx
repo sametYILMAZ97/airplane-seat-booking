@@ -6,8 +6,8 @@ export const AirplaneSvg = () => {
       id="Layer_1"
       xmlns="http://www.w3.org/2000/svg"
       xmlnsXlink="http://www.w3.org/1999/xlink"
-      viewBox="0 0 496 896" // Reverted viewBox to original dimensions
-      className="w-full h-full scale-y-150 scale-x-150" // Changed scale-y-100 to scale-y-150 and added scale-x-150 to increase size
+      viewBox="0 0 496 896"
+      className="w-full h-full scale-y-150 scale-x-150"
       preserveAspectRatio="xMidYMid meet"
       xmlSpace="preserve"
     >
