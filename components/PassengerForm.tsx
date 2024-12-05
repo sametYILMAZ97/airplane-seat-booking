@@ -1,25 +1,59 @@
-import { useState } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
+import { toast } from "sonner";
 
 interface PassengerFormProps {
   index: number;
   isOpen: boolean;
   disabled?: boolean;
   onToggle: () => void;
-  onSubmit: (data: { name: string; idNumber: string }) => void;
+  onSubmit: (data: {
+    name: string;
+    surname: string;
+    phone: string;
+    email: string;
+    gender: string;
+    birthDate: string;
+  }) => void;
 }
 
-export const PassengerForm = ({
-  index,
-  isOpen,
-  disabled,
-  onToggle,
-  onSubmit,
-}: PassengerFormProps) => {
-  const [formData, setFormData] = useState({ name: "", idNumber: "" });
+export const PassengerForm = forwardRef<
+  { resetForm: () => void },
+  PassengerFormProps
+>(({ index, isOpen, disabled, onToggle, onSubmit }, ref) => {
+  const [formData, setFormData] = useState({
+    name: "",
+    surname: "",
+    phone: "",
+    email: "",
+    gender: "",
+    birthDate: "",
+  });
+
+  // Expose resetForm method to parent
+  useImperativeHandle(ref, () => ({
+    resetForm: () => {
+      setFormData({
+        name: "",
+        surname: "",
+        phone: "",
+        email: "",
+        gender: "",
+        birthDate: "",
+      });
+    }
+  }));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Submitting form data:", formData); // Add this to debug
     onSubmit(formData);
+    toast.success("Yolcu bilgileri kaydedildi", {
+      style: {
+        backgroundColor: "#22c55e",
+        color: "white",
+      },
+    });
+    onToggle(); // Close the form after successful submission
   };
 
   return (
@@ -62,47 +96,95 @@ export const PassengerForm = ({
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block mb-1">İsim</label>
+              <label htmlFor={`name-${index}`} className="block mb-1">İsim</label>
               <input
+                id={`name-${index}`}
                 type="text"
                 className="w-full p-2 border rounded"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
+                required
               />
             </div>
             <div>
-              <label className="block mb-1">Soyisim</label>
-              <input type="text" className="w-full p-2 border rounded" />
+              <label htmlFor={`surname-${index}`} className="block mb-1">Soyisim</label>
+              <input
+                id={`surname-${index}`}
+                type="text"
+                className="w-full p-2 border rounded"
+                value={formData.surname}
+                onChange={(e) =>
+                  setFormData({ ...formData, surname: e.target.value })
+                }
+                required
+              />
             </div>
             <div>
-              <label className="block mb-1">Telefon</label>
-              <input type="tel" className="w-full p-2 border rounded" />
+              <label htmlFor={`phone-${index}`} className="block mb-1">Telefon</label>
+              <input
+                id={`phone-${index}`}
+                type="tel"
+                className="w-full p-2 border rounded"
+                value={formData.phone}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
+                required
+              />
             </div>
             <div>
-              <label className="block mb-1">E-Posta</label>
-              <input type="email" className="w-full p-2 border rounded" />
+              <label htmlFor={`email-${index}`} className="block mb-1">E-Posta</label>
+              <input
+                id={`email-${index}`}
+                type="email"
+                className="w-full p-2 border rounded"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                required
+              />
             </div>
             <div>
-              <label className="block mb-1">Cinsiyet</label>
-              <select className="w-full p-2 border rounded">
+              <label htmlFor={`gender-${index}`} className="block mb-1">Cinsiyet</label>
+              <select
+                id={`gender-${index}`}
+                className="w-full p-2 border rounded"
+                value={formData.gender}
+                onChange={(e) =>
+                  setFormData({ ...formData, gender: e.target.value })
+                }
+                required
+              >
                 <option value="">Seçiniz</option>
                 <option value="male">Erkek</option>
                 <option value="female">Kadın</option>
               </select>
             </div>
             <div>
-              <label className="block mb-1">Doğum Tarihi</label>
+              <label htmlFor={`birthDate-${index}`} className="block mb-1">Doğum Tarihi</label>
               <input
-                type="text"
-                placeholder="gg/aa/yyyy"
+                id={`birthDate-${index}`}
+                type="date"
                 className="w-full p-2 border rounded"
+                value={formData.birthDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, birthDate: e.target.value })
+                }
+                required
               />
             </div>
           </div>
+          <button
+            type="submit"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+          >
+            Kaydet
+          </button>
         </form>
       )}
     </div>
   );
-};
+});

@@ -21,7 +21,10 @@ export interface Seat {
 
 export interface User {
   id: number;
-  idNumber: string;
   name: string;
+  surname: string;
+  phone: string;
   email: string;
+  gender: string;
+  birthDate: string;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useStore } from "@/store/store";
 import { Seat } from "@/components/Seat";
 import { PassengerForm } from "@/components/PassengerForm";
@@ -10,9 +10,27 @@ import { toast } from "sonner";
 import { Timer } from "@/components/Timer";
 
 export default function Home() {
+  // Add formRefs to store references to PassengerForm components
+  const formRefs = useRef<{ [key: number]: { resetForm: () => void } }>({});
+
+  const [openForm, setOpenForm] = useState<number | null>(1);
+
   const [passengers, setPassengers] = useState<{
-    [key: number]: { name: string; idNumber: string };
+    [key: number]: {
+      name: string;
+      surname: string;
+      phone: string;
+      email: string;
+      gender: string;
+      birthDate: string;
+    };
   }>({});
+
+  const handleLocalReset = useCallback(() => {
+    setPassengers({});
+    setOpenForm(1);
+  }, []);
+
   const {
     seats,
     selectedSeats,
@@ -20,14 +38,17 @@ export default function Home() {
     selectSeat,
     handleReset,
     startInactivityTimer,
+    setOnTimeOut,
   } = useStore();
 
-  const handleLocalReset = useCallback(() => {
-    setPassengers({});
-    setOpenForm(1);
-  }, []);
-
-  const [openForm, setOpenForm] = useState<number | null>(1);
+  // Register timeout callback
+  useEffect(() => {
+    setOnTimeOut(() => {
+      // Reset all form data using refs when timer runs out
+      Object.values(formRefs.current).forEach((form) => form.resetForm());
+      handleLocalReset();
+    });
+  }, [handleLocalReset, setOnTimeOut]);
 
   const handleFormToggle = (index: number) => {
     setOpenForm(openForm === index ? null : index);
@@ -45,8 +66,14 @@ export default function Home() {
     }
 
     const filledPassengers = Object.values(passengers).filter(
-      (p) => p.name && p.idNumber
+      (p) =>
+        p.name && p.surname && p.phone && p.email && p.gender && p.birthDate
     );
+
+    console.log("Filled Passengers:", filledPassengers.length);
+    console.log("Selected Seats:", selectedSeats.length);
+    console.log("Passengers Data:", passengers); // Add this to debug
+
     if (filledPassengers.length !== selectedSeats.length) {
       toast.error("Lütfen tüm yolcu bilgilerini doldurun", {
         style: {
@@ -65,12 +92,26 @@ export default function Home() {
     });
     handleReset(() => {
       handleLocalReset();
+      // Reset all form data using refs
+      Object.values(formRefs.current).forEach((form) => form.resetForm());
     });
+  };
+
+  // Add ref collection function
+  const registerFormRef = (index: number, ref: { resetForm: () => void }) => {
+    formRefs.current[index] = ref;
   };
 
   const handlePassengerSubmit = (
     index: number,
-    data: { name: string; idNumber: string }
+    data: {
+      name: string;
+      surname: string;
+      phone: string;
+      email: string;
+      gender: string;
+      birthDate: string;
+    }
   ) => {
     setPassengers((prev) => ({ ...prev, [index]: data }));
   };
@@ -157,6 +198,9 @@ export default function Home() {
               onToggle={() => handleFormToggle(index)}
               onSubmit={(data) => handlePassengerSubmit(index, data)}
               disabled={index > selectedSeats.length}
+              ref={(ref) =>
+                registerFormRef(index, ref as { resetForm: () => void })
+              }
             />
           ))}
 

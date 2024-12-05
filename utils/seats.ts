@@ -1,21 +1,28 @@
-import { Seat } from "@/types";
+import { Seat, User } from "@/types";
 
 // Left side seats A-B, right side seats C-D
 export const COLUMNS = ["A", "B", "C", "D"];
 export const ROWS = Array.from({ length: 15 }, (_, i) => i + 1);
 export const PRICE_PER_SEAT = 1000;
 
-export const generateSeats = (): Seat[] => {
-  let occupiedCount = 0;
-
+export const generateSeats = (occupiedUsers: { [key: string]: User } = {}): Seat[] => {
   return ROWS.flatMap((row) =>
-    COLUMNS.map((column) => ({
-      id: `${row}${column}`,
-      row,
-      column,
-      isOccupied: ++occupiedCount <= 10, // the first 10 seats as occupied
-      isExitRow: row === 4, // 4th row is emergency exit
-    }))
+    COLUMNS.map((col) => {
+      const id = `${row}${col}`;
+      const user = occupiedUsers[id];
+
+      return {
+        id,
+        row,
+        column: col,
+        isOccupied: !!user,
+        isExitRow: row === 4,
+        occupiedBy: user ? {
+          name: user.name,
+          email: user.email
+        } : undefined
+      };
+    })
   );
 };
 

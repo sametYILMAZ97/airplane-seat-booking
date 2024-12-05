@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Seat, User } from "@/types";
 import { generateSeats } from "@/utils/seats";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 interface SeatStore {
   seats: Seat[];
@@ -19,23 +20,15 @@ interface SeatStore {
   selectSeat: (seatId: string) => void;
   handleReset: (onReset?: () => void) => void;
   startInactivityTimer: () => void;
+  fetchOccupiedUsers: () => Promise<void>;
+  onTimeOut?: () => void;
+  setOnTimeOut: (callback: () => void) => void;
 }
 
 export const useStore = create<SeatStore>((set, get) => ({
   seats: generateSeats(),
   selectedSeats: [],
-  occupiedUsers: {
-    "1A": { name: "User 1", idNumber: "ID1" },
-    "1B": { name: "User 2", idNumber: "ID2" },
-    "1C": { name: "User 3", idNumber: "ID3" },
-    "1D": { name: "User 4", idNumber: "ID4" },
-    "2A": { name: "User 5", idNumber: "ID5" },
-    "2B": { name: "User 6", idNumber: "ID6" },
-    "2C": { name: "User 7", idNumber: "ID7" },
-    "2D": { name: "User 8", idNumber: "ID8" },
-    "3A": { name: "User 9", idNumber: "ID9" },
-    "3B": { name: "User 10", idNumber: "ID10" },
-  },
+  occupiedUsers: {},
   inactivityTimer: null,
   showInactivityWarning: false,
   remainingTime: 30, // Initialize countdown (in seconds)
@@ -78,17 +71,17 @@ export const useStore = create<SeatStore>((set, get) => ({
     }
   },
   handleReset: (onReset) => {
-    const { setShowInactivityWarning } = get();
+    const { setShowInactivityWarning, occupiedUsers } = get();
     setShowInactivityWarning(false);
     set({
-      selectedSeats: [],
-      seats: generateSeats(),
+      selectedSeats: [], // Only reset selected seats
+      seats: generateSeats(occupiedUsers), // Pass existing occupiedUsers to maintain occupied state
     });
     if (onReset) onReset();
-    localStorage.clear();
+    // Remove localStorage.clear() to preserve occupied seats data
   },
   startInactivityTimer: () => {
-    const { inactivityTimer, handleReset, setRemainingTime } = get();
+    const { inactivityTimer, handleReset, setRemainingTime, onTimeOut } = get();
 
     if (inactivityTimer) {
       // Timer is already running, do not reset
@@ -105,9 +98,49 @@ export const useStore = create<SeatStore>((set, get) => ({
         clearInterval(timer);
         set({ inactivityTimer: null });
         handleReset();
+        // Call the timeout callback if set
+        if (onTimeOut) onTimeOut();
       }
     }, 1000);
 
     set({ inactivityTimer: timer });
   },
+
+  // Fetch users from API
+  fetchOccupiedUsers: async () => {
+    try {
+      const response = await fetch("https://jsonplaceholder.typicode.com/users");
+      const users = await response.json();
+      const mappedUsers: { [key: string]: User } = {};
+
+      // Map first 10 users to specific seats (1A through 3B)
+      const seatIds = ['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '3A', '3B'];
+
+      users.slice(0, 10).forEach((user: any, index) => {
+        const seatId = seatIds[index];
+        mappedUsers[seatId] = {
+          id: user.id,
+          name: user.name || "",
+          surname: user.name.split(' ')[1] || "",
+          phone: user.phone || "",
+          email: user.email || "",
+          gender: "male", // Default value
+          birthDate: "2000-01-01", // Default value
+        };
+      });
+
+      set({
+        occupiedUsers: mappedUsers,
+        seats: generateSeats(mappedUsers)
+      });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Kullanıcı verileri alınamadı.");
+    }
+  },
+  onTimeOut: undefined,
+  setOnTimeOut: (callback) => set({ onTimeOut: callback }),
 }));
+
+// Initialize fetching users
+useStore.getState().fetchOccupiedUsers();

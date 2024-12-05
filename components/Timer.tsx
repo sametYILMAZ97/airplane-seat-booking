@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 export const Timer: React.FC = () => {
   const remainingTime = useStore((state) => state.remainingTime);
+  const store = useStore();
 
   useEffect(() => {
     if (remainingTime === 5) {
@@ -11,8 +12,12 @@ export const Timer: React.FC = () => {
         action: {
           label: "Evet",
           onClick: () => {
-            // Handle the action, e.g., reset the timer
-            useStore.getState().startInactivityTimer();
+            // Clear existing timer and start a new one
+            if (store.inactivityTimer) {
+              clearInterval(store.inactivityTimer);
+              store.setInactivityTimer(null);
+            }
+            store.startInactivityTimer();
           },
         },
       });
