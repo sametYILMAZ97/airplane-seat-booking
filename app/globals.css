@@ -3,19 +3,57 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 245, 245, 245;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
 }
+
+.passenger-form {
+  background-color: #f3f4f6;
+  margin-bottom: 1rem;
+}
+
+.passenger-header {
+  background-color: #e5e7eb;
+  padding: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.passenger-content {
+  padding: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.complete-button {
+  width: 100%;
+  background-color: #71717a; /* zinc-500 */
+  color: white;
+  padding: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.complete-button:hover {
+  background-color: #52525b; /* zinc-600 */
+}
+
+.mt-6 {
+  margin-top: 1.5rem;
+}
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
