@@ -37,8 +37,9 @@ export default function Home() {
     occupiedUsers,
     selectSeat,
     handleReset,
-    startInactivityTimer,
     setOnTimeOut,
+    setRemainingTime,
+    setInactivityTimer,
   } = useStore();
 
   // Register timeout callback
@@ -90,6 +91,15 @@ export default function Home() {
         color: "white",
       },
     });
+
+    // Reset timer
+    const currentTimer = useStore.getState().inactivityTimer;
+    if (currentTimer) {
+      clearInterval(currentTimer);
+      setInactivityTimer(null);
+    }
+    setRemainingTime(30);
+
     handleReset(() => {
       handleLocalReset();
       // Reset all form data using refs

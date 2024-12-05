@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { Seat, User } from "@/types";
 import { generateSeats } from "@/utils/seats";
 import { toast } from "sonner";
-import { useEffect } from "react";
 
 interface SeatStore {
   seats: Seat[];
@@ -109,19 +108,39 @@ export const useStore = create<SeatStore>((set, get) => ({
   // Fetch users from API
   fetchOccupiedUsers: async () => {
     try {
-      const response = await fetch("https://jsonplaceholder.typicode.com/users");
-      const users = await response.json();
+      interface ApiUser {
+        id: number;
+        name: string;
+        phone: string;
+        email: string;
+      }
+
+      const response = await fetch(
+        "https://jsonplaceholder.typicode.com/users"
+      );
+      const users = (await response.json()) as ApiUser[];
       const mappedUsers: { [key: string]: User } = {};
 
       // Map first 10 users to specific seats (1A through 3B)
-      const seatIds = ['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '3A', '3B'];
+      const seatIds = [
+        "1A",
+        "1B",
+        "1C",
+        "1D",
+        "2A",
+        "2B",
+        "2C",
+        "2D",
+        "3A",
+        "3B",
+      ];
 
-      users.slice(0, 10).forEach((user: any, index) => {
+      users.slice(0, 10).forEach((user: ApiUser, index) => {
         const seatId = seatIds[index];
         mappedUsers[seatId] = {
           id: user.id,
           name: user.name || "",
-          surname: user.name.split(' ')[1] || "",
+          surname: user.name.split(" ")[1] || "",
           phone: user.phone || "",
           email: user.email || "",
           gender: "male", // Default value
@@ -131,7 +150,7 @@ export const useStore = create<SeatStore>((set, get) => ({
 
       set({
         occupiedUsers: mappedUsers,
-        seats: generateSeats(mappedUsers)
+        seats: generateSeats(mappedUsers),
       });
     } catch (error) {
       console.error("Error fetching users:", error);

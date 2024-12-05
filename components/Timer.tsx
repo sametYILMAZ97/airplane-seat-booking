@@ -22,7 +22,7 @@ export const Timer: React.FC = () => {
         },
       });
     }
-  }, [remainingTime]);
+  }, [remainingTime, store]);
 
   if (remainingTime === 0 || remainingTime === 30) {
     return null;

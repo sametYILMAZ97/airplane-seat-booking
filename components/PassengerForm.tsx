@@ -20,6 +20,7 @@ export const PassengerForm = forwardRef<
   { resetForm: () => void },
   PassengerFormProps
 >(({ index, isOpen, disabled, onToggle, onSubmit }, ref) => {
+PassengerForm.displayName = 'PassengerForm';
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -45,7 +46,7 @@ export const PassengerForm = forwardRef<
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitting form data:", formData); // Add this to debug
+    console.log("Submitting form data:", formData);
     onSubmit(formData);
     toast.success("Yolcu bilgileri kaydedildi", {
       style: {
