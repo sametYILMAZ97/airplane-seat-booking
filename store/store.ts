@@ -91,10 +91,11 @@ export const useStore = create<SeatStore>((set, get) => ({
     const { inactivityTimer, handleReset, setRemainingTime } = get();
 
     if (inactivityTimer) {
-      clearTimeout(inactivityTimer);
+      // Timer is already running, do not reset
+      return;
     }
 
-    setRemainingTime(30); // Reset countdown
+    setRemainingTime(30); // Initialize countdown
 
     const timer = setInterval(() => {
       const currentTime = get().remainingTime;
@@ -102,6 +103,7 @@ export const useStore = create<SeatStore>((set, get) => ({
         set({ remainingTime: currentTime - 1 });
       } else {
         clearInterval(timer);
+        set({ inactivityTimer: null });
         handleReset();
       }
     }, 1000);

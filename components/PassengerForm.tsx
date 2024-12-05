@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 
 interface PassengerFormProps {
   index: number;
@@ -15,7 +15,7 @@ export const PassengerForm = ({
   onToggle,
   onSubmit,
 }: PassengerFormProps) => {
-  const [formData, setFormData] = useState({ name: '', idNumber: '' });
+  const [formData, setFormData] = useState({ name: "", idNumber: "" });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,13 +23,15 @@ export const PassengerForm = ({
   };
 
   return (
-    <div className={`mb-4 ${disabled ? 'opacity-50' : ''}`}>
+    <div className={`mb-4 ${disabled ? "opacity-50" : ""}`}>
       <button
         onClick={onToggle}
         disabled={disabled}
         className={`w-full p-4 text-left rounded-lg transition-colors duration-200 flex items-center justify-between ${
-          isOpen ? 'bg-zinc-50 border-zinc-200 border' : 'bg-gray-50 hover:bg-gray-100'
-        }`}
+          isOpen
+            ? "bg-zinc-50 border-zinc-200 border"
+            : "bg-gray-50 hover:bg-gray-100"
+        } ${disabled ? "cursor-not-allowed" : ""}`}
       >
         <div className="flex items-center gap-2">
           <span className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-100 text-zinc-600">
@@ -38,16 +40,26 @@ export const PassengerForm = ({
           <span className="font-medium">Yolcu {index}</span>
         </div>
         <svg
-          className={`w-5 h-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
       {isOpen && !disabled && (
-        <form onSubmit={handleSubmit} className="p-6 border rounded-lg mt-2 bg-white shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="p-6 border rounded-lg mt-2 bg-white shadow-sm"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block mb-1">İsim</label>
@@ -94,4 +106,3 @@ export const PassengerForm = ({
     </div>
   );
 };
-
