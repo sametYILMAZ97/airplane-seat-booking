@@ -1,4 +1,4 @@
-import { useState, forwardRef, useImperativeHandle } from "react";
+import { useState, forwardRef, useImperativeHandle, useEffect } from "react";
 import { toast } from "sonner";
 
 interface PassengerFormProps {
@@ -14,21 +14,52 @@ interface PassengerFormProps {
     gender: string;
     birthDate: string;
   }) => void;
+  initialData?: {
+    name: string;
+    surname: string;
+    phone: string;
+    email: string;
+    gender: string;
+    birthDate: string;
+  };
 }
 
 export const PassengerForm = forwardRef<
   { resetForm: () => void },
   PassengerFormProps
->(({ index, isOpen, disabled, onToggle, onSubmit }, ref) => {
+>(({ index, isOpen, disabled, onToggle, onSubmit, initialData }, ref) => {
 PassengerForm.displayName = 'PassengerForm';
-  const [formData, setFormData] = useState({
-    name: "",
-    surname: "",
-    phone: "",
-    email: "",
-    gender: "",
-    birthDate: "",
+  const [formData, setFormData] = useState(() => {
+    // Try to get saved form data from localStorage first
+    if (typeof window !== 'undefined') {
+      const savedForms = localStorage.getItem('passengerForms');
+      if (savedForms) {
+        const forms = JSON.parse(savedForms);
+        if (forms[index]) {
+          return forms[index];
+        }
+      }
+    }
+    // Fall back to initialData or empty object
+    return initialData || {
+      name: "",
+      surname: "",
+      phone: "",
+      email: "",
+      gender: "",
+      birthDate: "",
+    };
   });
+
+  // Save form data to localStorage when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedForms = localStorage.getItem('passengerForms');
+      const forms = savedForms ? JSON.parse(savedForms) : {};
+      forms[index] = formData;
+      localStorage.setItem('passengerForms', JSON.stringify(forms));
+    }
+  }, [formData, index]);
 
   // Expose resetForm method to parent
   useImperativeHandle(ref, () => ({
@@ -41,8 +72,30 @@ PassengerForm.displayName = 'PassengerForm';
         gender: "",
         birthDate: "",
       });
+      // Clear the form data from all storages
+      if (typeof window !== 'undefined') {
+        const savedForms = localStorage.getItem('passengerForms');
+        if (savedForms) {
+          const forms = JSON.parse(savedForms);
+          delete forms[index];
+          localStorage.setItem('passengerForms', JSON.stringify(forms));
+        }
+        const savedPassengers = localStorage.getItem('passengers');
+        if (savedPassengers) {
+          const passengers = JSON.parse(savedPassengers);
+          delete passengers[index];
+          localStorage.setItem('passengers', JSON.stringify(passengers));
+        }
+      }
     }
   }));
+
+  // Update form data when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +233,7 @@ PassengerForm.displayName = 'PassengerForm';
           </div>
           <button
             type="submit"
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded w-full hover:bg-blue-600 transition-colors"
           >
             Kaydet
           </button>

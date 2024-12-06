@@ -13,6 +13,7 @@ export interface Seat {
   column: string;
   isOccupied: boolean;
   isExitRow?: boolean;
+  isEntryRow?: boolean;  // Add new property
   occupiedBy?: {
     name: string;
     email: string;

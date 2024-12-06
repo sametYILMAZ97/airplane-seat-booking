@@ -22,11 +22,12 @@ interface SeatStore {
   fetchOccupiedUsers: () => Promise<void>;
   onTimeOut?: () => void;
   setOnTimeOut: (callback: () => void) => void;
+  hydrateFromLocalStorage: () => void;
 }
 
 export const useStore = create<SeatStore>((set, get) => ({
   seats: generateSeats(),
-  selectedSeats: [],
+  selectedSeats: [], // Will be hydrated from localStorage
   occupiedUsers: {},
   inactivityTimer: null,
   showInactivityWarning: false,
@@ -54,7 +55,11 @@ export const useStore = create<SeatStore>((set, get) => ({
     }
 
     if (selectedSeats.includes(seatId)) {
-      set({ selectedSeats: selectedSeats.filter((id) => id !== seatId) });
+      const newSelectedSeats = selectedSeats.filter((id) => id !== seatId);
+      set({ selectedSeats: newSelectedSeats });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedSeats', JSON.stringify(newSelectedSeats));
+      }
     } else {
       if (selectedSeats.length >= 3) {
         toast.error("En fazla 3 koltuk seçebilirsiniz!", {
@@ -65,7 +70,11 @@ export const useStore = create<SeatStore>((set, get) => ({
         });
         return;
       }
-      set({ selectedSeats: [...selectedSeats, seatId] });
+      const newSelectedSeats = [...selectedSeats, seatId];
+      set({ selectedSeats: newSelectedSeats });
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('selectedSeats', JSON.stringify(newSelectedSeats));
+      }
       startInactivityTimer();
     }
   },
@@ -73,31 +82,42 @@ export const useStore = create<SeatStore>((set, get) => ({
     const { setShowInactivityWarning, occupiedUsers } = get();
     setShowInactivityWarning(false);
     set({
-      selectedSeats: [], // Only reset selected seats
-      seats: generateSeats(occupiedUsers), // Pass existing occupiedUsers to maintain occupied state
+      selectedSeats: [],
+      seats: generateSeats(occupiedUsers),
     });
     if (onReset) onReset();
-    // Remove localStorage.clear() to preserve occupied seats data
   },
   startInactivityTimer: () => {
     const { inactivityTimer, handleReset, setRemainingTime, onTimeOut } = get();
 
     if (inactivityTimer) {
-      // Timer is already running, do not reset
       return;
     }
 
-    setRemainingTime(30); // Initialize countdown
+    setRemainingTime(30);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('remainingTime', '30');
+    }
 
     const timer = setInterval(() => {
       const currentTime = get().remainingTime;
       if (currentTime > 0) {
-        set({ remainingTime: currentTime - 1 });
+        const newTime = currentTime - 1;
+        set({ remainingTime: newTime });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('remainingTime', newTime.toString());
+        }
       } else {
         clearInterval(timer);
         set({ inactivityTimer: null });
+        // Clear all storage and state
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('remainingTime');
+          localStorage.removeItem('selectedSeats');
+          localStorage.removeItem('passengers');
+          localStorage.removeItem('passengerForms');
+        }
         handleReset();
-        // Call the timeout callback if set
         if (onTimeOut) onTimeOut();
       }
     }, 1000);
@@ -115,42 +135,30 @@ export const useStore = create<SeatStore>((set, get) => ({
         email: string;
       }
 
-      const response = await fetch(
-        "https://jsonplaceholder.typicode.com/users"
-      );
+      const response = await fetch("https://jsonplaceholder.typicode.com/users");
       const users = (await response.json()) as ApiUser[];
       const mappedUsers: { [key: string]: User } = {};
 
       // Map first 10 users to specific seats (1A through 3B)
-      const seatIds = [
-        "1A",
-        "1B",
-        "1C",
-        "1D",
-        "2A",
-        "2B",
-        "2C",
-        "2D",
-        "3A",
-        "3B",
-      ];
+      const seatIds = ['1A', '1B', '1C', '1D', '2A', '2B', '2C', '2D', '3A', '3B'];
 
       users.slice(0, 10).forEach((user: ApiUser, index) => {
         const seatId = seatIds[index];
         mappedUsers[seatId] = {
           id: user.id,
           name: user.name || "",
-          surname: user.name.split(" ")[1] || "",
+          surname: user.name.split(' ')[1] || "",
           phone: user.phone || "",
           email: user.email || "",
-          gender: "male", // Default value
-          birthDate: "2000-01-01", // Default value
+          gender: "male",
+          birthDate: "2000-01-01",
         };
       });
 
+      // First update occupiedUsers, then generate seats with those users
       set({
         occupiedUsers: mappedUsers,
-        seats: generateSeats(mappedUsers),
+        seats: generateSeats(mappedUsers) // Pass occupiedUsers to generateSeats
       });
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -159,7 +167,35 @@ export const useStore = create<SeatStore>((set, get) => ({
   },
   onTimeOut: undefined,
   setOnTimeOut: (callback) => set({ onTimeOut: callback }),
+  hydrateFromLocalStorage: () => {
+    if (typeof window !== 'undefined') {
+      const savedSeats = localStorage.getItem('selectedSeats');
+      const savedTime = localStorage.getItem('remainingTime');
+
+      // Restore selected seats
+      if (savedSeats) {
+        const parsedSeats = JSON.parse(savedSeats);
+        set({
+          selectedSeats: parsedSeats,
+          // Regenerate seats to reflect occupied state
+          seats: generateSeats(get().occupiedUsers)
+        });
+      }
+
+      // Restore timer if needed
+      if (savedTime) {
+        const time = parseInt(savedTime, 10);
+        if (time > 0) {
+          set({ remainingTime: time });
+          get().startInactivityTimer();
+        }
+      }
+    }
+  },
 }));
 
-// Initialize fetching users
-useStore.getState().fetchOccupiedUsers();
+// Initialize store
+useStore.getState().fetchOccupiedUsers().then(() => {
+  // Hydrate after fetching users
+  useStore.getState().hydrateFromLocalStorage();
+});

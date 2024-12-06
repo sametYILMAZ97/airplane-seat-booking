@@ -10,11 +10,8 @@ import { toast } from "sonner";
 import { Timer } from "@/components/Timer";
 
 export default function Home() {
-  // Add formRefs to store references to PassengerForm components
   const formRefs = useRef<{ [key: number]: { resetForm: () => void } }>({});
-
   const [openForm, setOpenForm] = useState<number | null>(1);
-
   const [passengers, setPassengers] = useState<{
     [key: number]: {
       name: string;
@@ -26,9 +23,29 @@ export default function Home() {
     };
   }>({});
 
+  // Load passengers data on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPassengers = window.localStorage.getItem('passengers');
+      if (savedPassengers) {
+        setPassengers(JSON.parse(savedPassengers));
+      }
+    }
+  }, []);
+
+  // Save passengers data when it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('passengers', JSON.stringify(passengers));
+    }
+  }, [passengers]);
+
   const handleLocalReset = useCallback(() => {
     setPassengers({});
     setOpenForm(1);
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem('passengers');
+    }
   }, []);
 
   const {
@@ -38,8 +55,6 @@ export default function Home() {
     selectSeat,
     handleReset,
     setOnTimeOut,
-    setRemainingTime,
-    setInactivityTimer,
   } = useStore();
 
   // Register timeout callback
@@ -57,53 +72,37 @@ export default function Home() {
 
   const handleComplete = () => {
     if (selectedSeats.length === 0) {
-      toast.error("Lütfen en az bir koltuk seçin", {
-        style: {
-          backgroundColor: "#ef4444",
-          color: "white",
-        },
-      });
+      toast.error("Lütfen en az bir koltuk seçin");
       return;
     }
 
-    const filledPassengers = Object.values(passengers).filter(
-      (p) =>
-        p.name && p.surname && p.phone && p.email && p.gender && p.birthDate
+    // Get both current and saved passengers
+    const savedFormsStr = localStorage.getItem('passengerForms');
+    const savedForms = savedFormsStr ? JSON.parse(savedFormsStr) : {};
+
+    // Combine current passengers with saved ones
+    const allPassengers = { ...savedForms, ...passengers };
+
+    const filledPassengers = Object.values(allPassengers).filter(
+      (p): p is typeof passengers[number] => {
+        const passenger = p as typeof passengers[number];
+        return !!(passenger.name && passenger.surname && passenger.phone && passenger.email && passenger.gender && passenger.birthDate);
+      }
     );
 
-    console.log("Filled Passengers:", filledPassengers.length);
-    console.log("Selected Seats:", selectedSeats.length);
-    console.log("Passengers Data:", passengers); // Add this to debug
-
     if (filledPassengers.length !== selectedSeats.length) {
-      toast.error("Lütfen tüm yolcu bilgilerini doldurun", {
-        style: {
-          backgroundColor: "#ef4444",
-          color: "white",
-        },
-      });
+      toast.error("Lütfen tüm yolcu bilgilerini doldurun");
       return;
     }
 
-    toast.success("Rezervasyon başarıyla tamamlandı!", {
-      style: {
-        backgroundColor: "#22c55e",
-        color: "white",
-      },
-    });
+    toast.success("Rezervasyon başarıyla tamamlandı!");
 
-    // Reset timer
-    const currentTimer = useStore.getState().inactivityTimer;
-    if (currentTimer) {
-      clearInterval(currentTimer);
-      setInactivityTimer(null);
-    }
-    setRemainingTime(30);
-
+    // Clear only current session data but keep saved passengers
     handleReset(() => {
-      handleLocalReset();
-      // Reset all form data using refs
-      Object.values(formRefs.current).forEach((form) => form.resetForm());
+      setPassengers({});
+      setOpenForm(1);
+      // Don't remove passengers from localStorage
+      Object.values(formRefs.current).forEach(form => form.resetForm());
     });
   };
 
@@ -126,16 +125,50 @@ export default function Home() {
     setPassengers((prev) => ({ ...prev, [index]: data }));
   };
 
+  // Add hydration effects
+  useEffect(() => {
+    const hydratePassengers = () => {
+      if (typeof window !== 'undefined') {
+        const savedPassengers = window.localStorage.getItem('passengers');
+        if (savedPassengers) {
+          setPassengers(JSON.parse(savedPassengers));
+        }
+      }
+    };
+
+    hydratePassengers();
+    // Also re-hydrate store data
+    useStore.getState().hydrateFromLocalStorage();
+  }, []);
+
+  // Add route change handler to preserve state
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.setItem('passengers', JSON.stringify(passengers));
+      localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats));
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [passengers, selectedSeats]);
+
   return (
     <div className="min-h-screen p-8">
-      <div className="max-w-[88rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="max-w-[88rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
         <div className="relative bg-white p-8 rounded-lg shadow">
           <div className="relative w-full max-w-[1200px] h-[800px] mx-auto">
             <div className="absolute inset-0 scale-y-100 origin-top translate-y-52">
               <AirplaneSvg />
             </div>
             <div className="absolute inset-0 flex items-start justify-center pl-24 pt-[80px]">
-              <div className="w-[220px] flex gap-4">
+              <div className="w-[220px] flex gap-4 relative">
+                {/* Adjust Entry/Exit text positions - move closer to seats */}
+                <div className="absolute top-[100px] -left-32 w-[100px] text-center text-sm font-medium whitespace-nowrap">
+                  Giriş / Entry
+                </div>
+                <div className="absolute top-[100px] -right-6 w-[100px] text-center text-sm font-medium whitespace-nowrap">
+                  Çıkış / Exit
+                </div>
                 <div className="grid grid-cols-2 gap-x-0.5 gap-y-1">
                   {ROWS.map((row) =>
                     COLUMNS.slice(0, 2).map((col) => {
@@ -211,6 +244,7 @@ export default function Home() {
               ref={(ref) =>
                 registerFormRef(index, ref as { resetForm: () => void })
               }
+              initialData={passengers[index]} // Pass saved passenger data
             />
           ))}
 
