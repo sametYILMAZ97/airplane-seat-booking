@@ -14,6 +14,20 @@
 - **Responsive Design 📱**: Ensure optimal user experience across a variety of devices and screen sizes.
 - **Real-time Updates 🔔**: Instantly reflect changes in seat availability and user interactions.
 
+## Screenshots 📸
+
+### Seat Selection Interface
+
+![Seat Selection Interface](https://raw.githubusercontent.com/sametYILMAZ97/airplane-seat-booking/master/public/seat_selection.png)
+
+### Passenger Information Form
+
+![Passenger Information Form](https://raw.githubusercontent.com/sametYILMAZ97/airplane-seat-booking/master/public/inputs.png)
+
+### Inactivity Reminder
+
+![Inactivity Reminder](https://raw.githubusercontent.com/sametYILMAZ97/airplane-seat-booking/master/public/reminder.png)
+
 ## Tech Stack 🛠️
 
 - **Next.js**: A robust React framework optimized for production environments.
@@ -32,6 +46,8 @@
 - **sonner**: Delivers stylish and customizable toast notifications for modern web applications.
 - **tailwind-merge**: Merges Tailwind CSS classes seamlessly, preventing class conflicts.
 - **tailwindcss-animate**: Adds animation utilities to Tailwind CSS, enabling dynamic UI effects.
+
+---
 
 ## Özellikler ✈️
 
